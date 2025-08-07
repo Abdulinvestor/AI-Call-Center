@@ -20,7 +20,7 @@ app.use((req, res, next) => {
 app.use(express.static('public'));
 
 // Configuration
-const NGROK_URL = process.env.NGROK_URL || 'https://d0d21d7d1afe.ngrok-free.app';
+const BASE_URL = process.env.BASE_URL || 'https://ai-call-center-du71.onrender.com';
 const LOG_FILE = path.join(__dirname, 'logs.json');
 
 // Twilio credentials
@@ -169,7 +169,7 @@ app.get('/call-me', (req, res) => {
         return res.status(400).json({ error: 'Ngrok URL not configured properly' });
     }
     client.calls.create({
-        url: `${NGROK_URL}/voice`,
+       url: `${BASE_URL}/voice`,
         to: '+918106817727',
         from: '+16089678356'
     }).then(call => {
