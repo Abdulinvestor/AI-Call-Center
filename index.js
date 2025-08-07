@@ -24,7 +24,7 @@ const NGROK_URL = process.env.NGROK_URL || 'https://d0d21d7d1afe.ngrok-free.app'
 const LOG_FILE = path.join(__dirname, 'logs.json');
 
 // Twilio credentials
-require('dotenv').config(); // Add this line at the top
+// require('dotenv').config(); // Add this line at the top
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -180,6 +180,8 @@ app.get('/call-me', (req, res) => {
 });
 
 // Start server
-app.listen(5500, () => {
-    console.log('✅ AI Call Center Server running at http://localhost:5500');
+const PORT = process.env.PORT || 5500;
+app.listen(PORT, () => {
+    console.log(`✅ AI Call Center Server running on port ${PORT}`);
 });
+
