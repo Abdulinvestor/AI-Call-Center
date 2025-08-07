@@ -139,7 +139,16 @@ app.post('/voice', (req, res) => {
             callLogs.push(logEntry);
             fs.writeFileSync(LOG_FILE, JSON.stringify(callLogs, null, 2));
 
-            twiml.say(`Excellent! Thank you ${session.name}. Your info is recorded. Goodbye!`);
+            twiml.say(`Excellent! Thank you ${session.name}. Your info is recorded.`);
+
+// Simulate human agent routing
+            twiml.say('Please stay on the line while we connect you to a human agent.');
+
+// Simulated delay and response
+            twiml.pause({ length: 2 }); // 2-second pause
+            twiml.say('Now all agents are currently busy. They will follow up with you in 24 hours.');
+
+// End the call
             twiml.hangup();
             delete userSessions[callSid];
             break;
