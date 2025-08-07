@@ -165,13 +165,14 @@ app.get('/logs', (req, res) => {
 
 // Make call
 app.get('/call-me', (req, res) => {
-    if (NGROK_URL.includes('your-ngrok-url')) {
-        return res.status(400).json({ error: 'Ngrok URL not configured properly' });
+    if (!BASE_URL.startsWith('http')) {
+        return res.status(400).json({ error: 'BASE_URL is not set properly' });
     }
+
     client.calls.create({
-       url: `${BASE_URL}/voice`,
-        to: '+918106817727',
-        from: '+16089678356'
+        url: `${BASE_URL}/voice`,
+        to: '+918106817727',     // your verified number
+        from: '+16089678356'     // your Twilio number
     }).then(call => {
         res.json({ success: true, callSid: call.sid });
     }).catch(error => {
