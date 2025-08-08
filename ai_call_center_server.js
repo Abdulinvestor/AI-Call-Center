@@ -4,11 +4,12 @@ const bodyParser = require('body-parser');
 const twilio = require('twilio');
 const path = require('path');
 const fs = require('fs');
+const { exec } = require('child_process'); // Required for Git auto-push
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 
-// Add CORS headers for cross-origin requests
+// Add CORS headers
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -16,7 +17,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// Serve static files (CSS, JS, images)
+// Serve static files
 app.use(express.static('public'));
 
 // Configuration
@@ -24,13 +25,11 @@ const BASE_URL = process.env.BASE_URL || 'https://ai-call-center-du71.onrender.c
 const LOG_FILE = path.join(__dirname, 'logs.json');
 
 // Twilio credentials
-// require('dotenv').config(); // Add this line at the top
-
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = twilio(accountSid, authToken);
 
-// Load logs from file
+// Load logs
 let callLogs = [];
 if (fs.existsSync(LOG_FILE)) {
     try {
@@ -42,6 +41,7 @@ if (fs.existsSync(LOG_FILE)) {
     }
 } else {
     fs.writeFileSync(LOG_FILE, JSON.stringify([]));
+    console.log('🆕 logs.json file created with empty array');
 }
 
 let userSessions = {};
@@ -126,6 +126,7 @@ app.post('/voice', (req, res) => {
                 break;
             }
             session.introduction = userInput;
+
             const logEntry = {
                 from: req.body.From,
                 name: session.name,
@@ -139,17 +140,22 @@ app.post('/voice', (req, res) => {
             callLogs.push(logEntry);
             fs.writeFileSync(LOG_FILE, JSON.stringify(callLogs, null, 2));
 
+            // 🔁 Auto Git push
+            exec('git add logs.json && git commit -m "Auto-update call log" && git push', (err, stdout, stderr) => {
+                if (err) {
+                    console.error('❌ Git push failed:', err.message);
+                } else {
+                    console.log('✅ logs.json committed and pushed to GitHub');
+                }
+            });
+
+            // Final voice responses
             twiml.say(`Excellent! Thank you ${session.name}. Your info is recorded.`);
-
-// Simulate human agent routing
             twiml.say('Please stay on the line while we connect you to a human agent.');
-
-// Simulated delay and response
-            twiml.pause({ length: 2 }); // 2-second pause
+            twiml.pause({ length: 2 });
             twiml.say('Now all agents are currently busy. They will follow up with you in 24 hours.');
-
-// End the call
             twiml.hangup();
+
             delete userSessions[callSid];
             break;
 
@@ -194,4 +200,3 @@ const PORT = process.env.PORT || 5500;
 app.listen(PORT, () => {
     console.log(`✅ AI Call Center Server running on port ${PORT}`);
 });
-
